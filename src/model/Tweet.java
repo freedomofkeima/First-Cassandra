@@ -1,8 +1,13 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.utils.UUIDs;
 
 /**
  * Tweet Model for Cassandra First Project
@@ -47,17 +52,53 @@ public class Tweet {
 		this.body = body;
 	}
 	
+	public void retrieveTweet(Session session) {
+		PreparedStatement ps = session.prepare("SELECT * FROM tweets WHERE tweet_id = ? ");
+		ResultSet res = session.execute(ps.bind(tweet_id));
+		for (Row r : res) {
+			username = r.getString("username");
+			body = r.getString("body");
+		}
+	}
+	
 	public boolean tweeting(Session session) {
+		boolean ret = false;
+		tweet_id = UUIDs.random();
+		UUID time = UUIDs.timeBased();
+		
+		// Insert to Tweet
+		PreparedStatement ps = session.prepare("INSERT INTO tweets (tweet_id, username, body) VALUES (?, ?, ?)");
+		session.execute(ps.bind(tweet_id, username, body));
 		
 		// Insert to Userline
+		Userline userline = new Userline();
+		userline.setUsername(username);
+		userline.setTime(time);
+		userline.setTweet_id(tweet_id);
+		userline.tweeting(session);
 		
 		// Insert to Timeline
+		Timeline timeline = new Timeline();
+		timeline.setUsername(username);
+		timeline.setTime(time);
+		timeline.setTweet_id(tweet_id);
+		timeline.addTweet(session);
 		
 		// Retrieve All Followers
+		ArrayList<String> f = Follower.retrieveFollowers(session, username);
 		
 		// Insert to All Followers Timeline
+		for (String f_entity : f) {
+			Timeline timeline_follower = new Timeline();
+			timeline_follower.setUsername(f_entity);
+			timeline_follower.setTime(time);
+			timeline_follower.setTweet_id(tweet_id);
+			timeline_follower.addTweet(session);
+		}
 		
-		return false;
+		ret = true;
+		
+		return ret;
 	}	
 
 }

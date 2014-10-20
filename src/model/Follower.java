@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 /**
@@ -68,8 +70,16 @@ public class Follower {
 		return false;
 	}
 	
-	public ArrayList<Follower> retrieveFollowers(Session session) {
-		ArrayList<Follower> ret = null;
+	public static ArrayList<String> retrieveFollowers(Session session, String username) {
+		ArrayList<String> ret = new ArrayList<String>();
+		PreparedStatement ps;
+		
+		ps = session.prepare("SELECT * FROM followers WHERE username= ? ");
+		ResultSet res = session.execute(ps.bind(username));
+		
+		for (Row r : res) {
+			ret.add(r.getString("follower"));
+		}
 		
 		return ret;
 	}

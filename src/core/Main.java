@@ -154,7 +154,6 @@ public class Main {
 						System.out.println("Error in tweeting!");
 					}
 					
-					
 					break;
 				case "3":
 					System.out.print("Choose username for userline: ");
@@ -189,14 +188,13 @@ public class Main {
 					System.out.println("Unrecognized Input!");
 				}
 
-				isFinished = true;
 			}
 		}
 
 		// Clean up the connection by closing it
 		cluster.close();
 	}
-	
+
 	private static void showTweets(ArrayList<Tweet> tweets) {
 		if (tweets.size() == 0) System.out.println("- No Tweet -");
 		else {
